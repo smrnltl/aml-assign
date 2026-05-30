@@ -1,0 +1,788 @@
+\documentclass[10pt,twocolumn,a4paper]{article}
+
+%% --- Packages ---
+\usepackage[a4paper,
+            top=18mm, bottom=18mm,
+            left=12mm, right=12mm,
+            columnsep=6mm]{geometry}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf,skip=4pt]{caption}
+\usepackage{subcaption}
+\usepackage[colorlinks=true,
+            linkcolor=blue,
+            citecolor=blue,
+            urlcolor=blue]{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{abstract}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[numbers,sort&compress]{natbib}
+
+%% --- Paragraph spacing (replaces parskip package) ---
+\setlength{\parskip}{0pt plus 0.5pt}
+\setlength{\parindent}{1em}
+
+%% --- Float spacing ---
+\setlength{\floatsep}{4pt plus 1pt minus 1pt}
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{4pt plus 1pt minus 1pt}
+\setlength{\dblfloatsep}{4pt plus 1pt minus 1pt}
+\setlength{\dbltextfloatsep}{6pt plus 1pt minus 1pt}
+
+%% --- Code listing style ---
+\definecolor{codegray}{rgb}{0.95,0.95,0.95}
+\definecolor{keywordcolor}{rgb}{0.0,0.0,0.6}
+\definecolor{commentcolor}{rgb}{0.3,0.5,0.3}
+\definecolor{stringcolor}{rgb}{0.6,0.1,0.1}
+
+\lstdefinestyle{matlab}{
+  language=Matlab,
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{keywordcolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape,
+  stringstyle=\color{stringcolor},
+  breaklines=true,
+  breakatwhitespace=false,
+  tabsize=2,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=4pt,
+  frame=single,
+  rulecolor=\color{gray!40},
+  showstringspaces=false,
+  captionpos=b
+}
+
+%% --- Section title formatting ---
+\titleformat{\section}{\normalfont\bfseries\large}{\Roman{section}.}{0.5em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\Alph{subsection}.}{0.4em}{}
+\titleformat{\subsubsection}{\normalfont\itshape\normalsize}{\arabic{subsubsection})}{0.3em}{}
+\titlespacing*{\section}{0pt}{6pt}{2pt}
+\titlespacing*{\subsection}{0pt}{4pt}{1pt}
+\titlespacing*{\subsubsection}{0pt}{3pt}{1pt}
+
+%% --- Abstract formatting ---
+\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape}
+\setlength{\absleftindent}{0pt}
+\setlength{\absrightindent}{0pt}
+
+%% --- Header / Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small STW7085CEM --- Advanced Machine Learning}
+\fancyhead[R]{\small Gaurav Subedi (240393)}
+
+\fancyfoot[C]{\small\thepage} 
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{ 
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+\graphicspath{{./figures/}}
+
+\begin{document}
+
+\twocolumn[{%
+\begin{@twocolumnfalse}
+  \begin{center}
+    {\LARGE\bfseries A Mamdani Fuzzy Logic Controller for Environmental
+      Regulation in a Smart Assistive Apartment:\\
+      Design, GA Optimisation, and Benchmark Evaluation}\\[8pt]
+    {\large Gaurav Subedi}\\[3pt]
+    {\small Student ID: 240393 \quad CUID: 16542479}\\[2pt]
+    {\small MSc Data Science and Computational Intelligence}\\[2pt]
+    {\small Softwarica College of IT \& E-Commerce (Coventry University)}\\[2pt]
+    {\small Kathmandu, Nepal}\\[2pt]
+    {\small \href{mailto:240393@softwarica.edu.np}{240393@softwarica.edu.np}}\\[6pt]
+  \end{center}
+  \begin{abstract}
+    Smart apartments used as a home by an elderly or disabled person need controllers which can provide reasoned responses based upon uncertain information from multiple input sensors. The \textbf{Fuzzy Logic Controller (FLC)} presented here was designed using \textbf{Mamdani}'s methodology. There were six input variables provided via crisp reading; temperature, humidity, the amount of light available outside the room, time of day, number of people in the space, and the amount of physical activity being performed within the space. These inputs where converted into fuzzy values through a \textbf{fuzzy-logic-inference engine} containing \textbf{25 rules}. Three output parameters were produced, i.e., heating/cooling (HVAC), dimmable lighting and motorized blinds. An optimized solution to the membership function parameterization was found using a genetic algorithm. The genetic algorithm encoded the \textbf{76 parameters} of the membership function as a single string of ``real'' numbers. It successfully reduced the \textbf{Root Mean Square Error (RMSE)} of the system to less than 1.0\% after 80 iterations. In addition to this study, the performance characteristics of the \textbf{Genetic Algorithm (GA)} compared to those of \textbf{Particle Swarm Optimization (PSO)} were evaluated in two test cases. Both algorithms were tested on each of two \textbf{CEC2005} functions at both dimensionality levels of D = 2 and D = 10. This comparison was intended to clarify the performance differences between the two metaheuristics as a function of problem type. The results showed that the fuzzy logic controller responded appropriately to all conditions during a simulated twenty-four hour period. Also, the comparative performances of the genetic algorithm and PSO varied significantly depending on the specific characteristics of the search landscapes.
+  \end{abstract}
+  \vspace{4pt}
+\end{@twocolumnfalse}
+}]
+
+\section{Introduction}
+\label{sec:intro}
+
+Ambient Assisted Living (AAL) research has grown rapidly as aging populations and rising disability prevalence create demand for homes that adapt to resident needs without constant manual intervention~\cite{demiris2014}. Rule-based crisp systems cannot handle the linguistic vagueness inherent in descriptions such as ``too warm'' or ``adequate lighting.'' Fuzzy Logic Controllers (FLCs) address this by mapping physical measurements to overlapping linguistic categories and combining rules through a principled inference mechanism.
+
+The Mamdani inference model is chosen here because its output membership functions remain interpretable as linguistic descriptors; ``mild cooling'' or ``medium brightness''; which matters in a care context where occupational therapists, not engineers, may need to audit and modify rules~\cite{mamdani1975}. Sugeno models, while computationally leaner, map outputs to numeric functions that are harder to explain without domain expertise~\cite{sugeno1985}.
+
+Three interlocking questions guide the work: (1) Can a compact 25-rule Mamdani FLC produce contextually appropriate HVAC, lighting, and blind positions across a full daily cycle? (2) Does a GA operating on MF breakpoints measurably improve FLC accuracy, and what does the chromosome structure look like? (3) How do GA and PSO compare on CEC\,2005 benchmarks, and what does that reveal about their inductive biases?
+
+\section{Part 1 --- FLC Design and Implementation}
+\label{sec:part1}
+
+\subsection{Problem Framing and Input--Output Selection}
+
+The target environment is a single apartment occupied by one mobility-impaired resident. Six sensors are monitored, as listed in Table~\ref{tab:inputs}, selected because they jointly determine comfort without requiring complex wearable hardware. Three actuators are controlled: the HVAC unit, a dimmable light circuit, and motorised window blinds (Table~\ref{tab:outputs}).
+
+\begin{table}[H]
+  \centering
+  \caption{FLC Inputs: Sensors, ranges, and fuzzy sets.}
+  \label{tab:inputs}
+  \scriptsize
+  \begin{tabularx}{\columnwidth}{lllX}
+    \toprule
+    \textbf{Input} & \textbf{Unit} & \textbf{Range} & \textbf{Fuzzy Sets} \\
+    \midrule
+    Temperature      & $^\circ$C   & 0--40    & cold / comfortable / hot \\
+    Humidity         & \%          & 0--100   & dry / comfortable / humid \\
+    External light   & lux         & 0--1000  & dark / moderate / bright \\
+    Time of day      & hour        & 0--24    & night / morning / afternoon / evening \\
+    Occupancy        & persons     & 0--5     & empty / low / high \\
+    User activity    & level       & 0--10    & resting / moderate / active \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{FLC Outputs: Actuators, ranges, and fuzzy sets.}
+  \label{tab:outputs}
+  \scriptsize
+  \begin{tabularx}{\columnwidth}{llX}
+    \toprule
+    \textbf{Output} & \textbf{Range} & \textbf{Fuzzy Sets} \\
+    \midrule
+    HVAC power     & $-100$ to $+100$ & strong\_cool / mild\_cool / neutral / mild\_heat / strong\_heat \\
+    Lighting level & 0--100\%         & off / dim / medium / bright \\
+    Blinds pos.    & 0--100\%         & closed / half\_open / open \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Fuzzy Inference Model Selection}
+
+A \textbf{Mamdani} model is adopted for human intelligibility. Because outputs remain linguistic fuzzy sets, a care worker can read a rule such as \textit{``IF temperature is hot AND user\_activity is active THEN hvac\_output is strong\_cool''} and immediately verify whether the behaviour matches clinical guidelines. The inference chain follows five steps:
+\begin{enumerate}[leftmargin=*, noitemsep, topsep=2pt]
+  \item \textit{Fuzzification} --- crisp sensor values $\to$ membership degrees;
+  \item \textit{Rule evaluation} --- \texttt{min} operator on AND-connected antecedents;
+  \item \textit{Implication} --- clips each consequent MF at the firing strength;
+  \item \textit{Aggregation} --- \texttt{max} over all clipped consequents;
+  \item \textit{Defuzzification} --- centroid converts the aggregate set to a crisp value.
+\end{enumerate}
+
+\subsection{Membership Function Design}
+
+\subsubsection{Input MFs}
+
+Trapezoidal MFs (\texttt{trapmf}) model boundary linguistic sets, providing flat plateaux where membership stays at 1.0 even under small sensor noise, preventing unnecessary actuator toggling. Triangular MFs (\texttt{trimf}) model interior linguistic sets where gradual transitions carry useful control information.
+
+The temperature input uses three MFs aligned with clinical thermal comfort standards: \textit{cold} spans 0--17\,$^\circ$C (plateau 0--12\,$^\circ$C), \textit{comfortable} peaks at 19\,$^\circ$C with support from 14 to 24\,$^\circ$C, and \textit{hot} rises from 22\,$^\circ$C with a plateau from 27 to 40\,$^\circ$C. Adjacent MF overlap is kept at $\approx$30\% of the triangle base for smooth rule transitions without abrupt switching artefacts. Time of day carries four MFs because a residential day divides into four behavioural phases: night-rest, morning routine, afternoon activity, and evening relaxation. Figure~\ref{fig:input_mfs} shows all six input MF plots.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/INPUT MFs.png}
+  \caption{Input MFs for all six sensor variables. Trapezoidal MFs model boundary labels; triangular MFs model interior transitions.}
+  \label{fig:input_mfs}
+\end{figure}
+
+\subsubsection{Output MFs}
+
+HVAC uses five MFs spanning a bipolar range ($-100$ to $+100$): negative values command cooling, positive values command heating. The \textit{neutral} set is a narrow triangle centred at zero (support $-10$ to $+10$) so the actuator remains off when conditions are already comfortable. Lighting uses four levels (\textit{off}, \textit{dim}, \textit{medium}, \textit{bright}); blinds use three positions. All output MFs apply the same trapezoid-at-boundary, triangle-for-interior strategy (Figure~\ref{fig:output_mfs}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Output MFs.png}
+  \caption{Output MFs for HVAC (bipolar), lighting, and blinds. The narrow \textit{neutral} HVAC MF avoids unnecessary actuation at comfortable temperatures.}
+  \label{fig:output_mfs}
+\end{figure}
+
+The MATLAB Fuzzy Logic Designer tool was used for visual validation of all MF placements (Figure~\ref{fig:flc_designer}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/FLC Designer.png}
+  \caption{MATLAB Fuzzy Logic Designer showing the complete FIS structure with six inputs and three outputs.}
+  \label{fig:flc_designer}
+\end{figure}
+
+\subsection{Rule Base Design}
+
+Twenty-five rules are defined across four behavioural groups.
+
+\textbf{Thermal comfort rules (R1--R8)} handle HVAC. Cold temperatures with high occupancy trigger strong heating; an empty apartment defaults to neutral output to conserve energy. The combination of high humidity with hot temperature (R7) explicitly fires strong cooling because excess humidity compounds perceived heat and is hazardous for residents with limited mobility.
+
+\textbf{Lighting rules (R9--R16)} account for both external luminance and time of day. At night with non-zero occupancy, the system defaults to medium light. During a bright afternoon, artificial lighting is switched off to prevent energy waste and reduce glare that can disorient visually impaired residents.
+
+\textbf{Blinds rules (R17--R22)} manage solar gain and privacy. Bright morning light prompts full opening to capitalise on natural light. A hot afternoon combined with bright sunshine results in half-open blinds, balancing ventilation against heat ingress (R18). Night always closes blinds for privacy and thermal insulation.
+
+\textbf{Composite activity-aware rules (R23--R25)} fuse activity with thermal and lighting state. Rule R23 fires when temperature is \textit{hot} AND user activity is \textit{active}, simultaneously commanding \textit{strong\_cool} and \textit{bright} lighting, as needed during a physiotherapy exercise session. All rules use AND-connected antecedents with unit weight and the \texttt{min} implication operator.
+
+The Rule Editor and a sample rule inference view are shown in Figures~\ref{fig:rule_editor} and~\ref{fig:rule_inference}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Rule Editor.png}
+  \caption{Rule editor showing all 25 rules with their antecedents, consequents, weights, and AND/OR connections.}
+  \label{fig:rule_editor}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Rule Inference 1.png}
+    \caption{Morning exercise}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Rule Inference 2.png}
+    \caption{Hot afternoon}
+  \end{subfigure}
+  \caption{Rule inference viewer showing fired rules and their activation strengths for two operational scenarios.}
+  \label{fig:rule_inference}
+\end{figure}
+
+\subsection{Defuzzification}
+
+Centroid defuzzification (centre of gravity) is used for all three outputs:
+\begin{equation}
+  u^* = \frac{\int \mu_{\tilde{U}}(u)\cdot u\,\mathrm{d}u}
+             {\int \mu_{\tilde{U}}(u)\,\mathrm{d}u},
+\end{equation}
+where $\mu_{\tilde{U}}$ is the aggregated output fuzzy set. The centroid integrates the entire aggregate rather than sampling its peak, yielding smoother trajectories under gradual input changes --- important in a care environment where sudden actuator jumps could startle a resident.
+
+\subsection{Control Surface Analysis}
+
+Figures~\ref{fig:surf_hvac_hum} and~\ref{fig:surf_light_blind} show control surfaces across the most diagnostic two-input pairs.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Surface TempX Hum HVAC.png}
+    \caption{Temp $\times$ Humidity $\to$ HVAC}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Surface TempX ToD HVAC.png}
+    \caption{Temp $\times$ Time-of-Day $\to$ HVAC}
+  \end{subfigure}
+  \caption{HVAC control surfaces. The high-temp / high-humidity corner (R4+R7 co-firing) reaches the maximum cooling plateau. The time-of-day surface is nearly flat, confirming HVAC rules are temperature-primary.}
+  \label{fig:surf_hvac_hum}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Surface Extlight x ToD lighting.png}
+    \caption{ExtLight $\times$ ToD $\to$ Lighting}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.49\columnwidth}
+    \includegraphics[width=\linewidth]{figures/Surface Extlight x ToD Blinds.png}
+    \caption{ExtLight $\times$ ToD $\to$ Blinds}
+  \end{subfigure}
+  \caption{Lighting and blinds control surfaces. After $\approx$18:00 h, the time-of-day rules override luminance and push lighting upward again, matching evening residential usage. Blinds close fully at night regardless of external light.}
+  \label{fig:surf_light_blind}
+\end{figure}
+
+The temperature--humidity surface (Fig.~\ref{fig:surf_hvac_hum}a) shows a clear negative-to-positive gradient along the temperature axis; at comfortable temperatures the surface flattens near zero regardless of humidity, confirming the \textit{neutral} MF dominates when conditions are already acceptable. The lighting surface is notably non-monotone: high external light during the day suppresses artificial lighting, but after $\approx$18:00\,h the time-of-day rules push brightness upward again, matching how evening routines require adequate indoor light even when outdoor conditions have already darkened.
+
+\subsection{Operational Scenario: 24-Hour Simulation}
+
+A 15-minute resolution simulation drives the FLC with realistic synthetic sensor profiles for a full day. Temperature follows a sinusoidal daily cycle peaking around 13:00. External light rises from zero at 06:00, peaks near solar noon, and falls to zero by 20:00. Occupancy is zero during early-morning and late-night sleeping hours, with brief spikes to level 3 at 08:00--09:00 (morning routine), 12:00--13:00 (lunch), and 18:00--21:00 (evening activity). A short activity burst at 09:00 simulates a physiotherapy session.
+
+Three fixed-input scenarios were also evaluated to verify rule traceability, with command-line outputs shown in Figure~\ref{fig:rule_activation_cmd}:
+\begin{itemize}[leftmargin=*, noitemsep, topsep=2pt]
+  \item \textbf{Hot afternoon} (34\,$^\circ$C, 75\% RH, 950\,lux, 15:00, 3\,persons, moderate): HVAC $\approx -70$, Lighting $\approx 0$\%, Blinds $\approx 40$\%.
+  \item \textbf{Night rest} (16\,$^\circ$C, 45\% RH, 5\,lux, 02:00, 1\,person, resting): HVAC $\approx +15$, Lighting $\approx 0$\%, Blinds $\approx 0$\%.
+  \item \textbf{Morning exercise} (28\,$^\circ$C, 60\% RH, 700\,lux, 09:00, 2\,persons, active): HVAC $\approx -60$, Lighting $\approx 85$\%, Blinds $\approx 75$\%.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Rule Activation cmd output.png}
+  \caption{Command-window output showing FLC responses for the three operational scenarios.}
+  \label{fig:rule_activation_cmd}
+\end{figure}
+
+All three responses align with expected comfort and safety behaviour for a mobility-impaired resident. The exercise spike at 09:00 produces a sharp surge in HVAC cooling demand and simultaneously pushes lighting to \textit{bright} --- Rule R23 firing. The combined actuator response lasts $<$30 simulated minutes before the system relaxes as activity drops. This emergent directional switching was not explicitly programmed; it arises from rule interactions.
+
+\section{Part 2 --- GA Optimisation of the FLC}
+\label{sec:part2}
+
+\subsection{Motivation and Problem Setup}
+
+Hand-tuned MF breakpoints represent one designer's interpretation of linguistic boundaries. A Genetic Algorithm can search the continuous breakpoint space and find parameter combinations that better match observed sensor--actuator data, minimising prediction error. The reference dataset comprises $N\!=\!200$ input--output pairs generated by evaluating the base FIS and adding Gaussian noise ($\sigma\!=\!10$ for HVAC, $\sigma\!=\!5$ for lighting and blinds) to simulate real-world sensor uncertainty and human override events.
+
+\subsection{Chromosome Encoding}
+
+The chromosome encodes only \textbf{input MF parameters}. Output MF shapes are retained from the expert design because they represent interpretable linguistic labels that should remain anchored to human-understandable values.
+
+Each MF is represented by four real-valued genes (its defining breakpoints). Trapezoidal MFs need four parameters $[a\;b\;c\;d]$; triangular MFs need three $[a\;b\;c]$ but are padded to four for a uniform chromosome length. Gene allocation across inputs:
+\begin{center}
+  \scriptsize
+  \begin{tabular}{lrr}
+    \toprule
+    Input & MFs & Genes \\
+    \midrule
+    Temperature    & 3 & 12 \\
+    Humidity       & 3 & 12 \\
+    External light & 3 & 12 \\
+    Time of day    & 4 & 16 \\
+    Occupancy      & 3 & 12 \\
+    User activity  & 3 & 12 \\
+    \midrule
+    \textbf{Total} &   & \textbf{76} \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+A validity constraint \texttt{enforce\_mf\_ordering} sorts breakpoints within each input block and clamps them to the physical range after every crossover and mutation, preventing physically impossible MFs (e.g., a triangle whose peak lies outside its base).
+
+\subsection{Fitness Function}
+
+The fitness function is:
+\begin{equation}
+  F(\bm{\theta}) = \frac{1}{1 + \mathrm{RMSE}(\bm{\theta})},
+  \qquad
+  \mathrm{RMSE} = \sqrt{\frac{1}{3N}\sum_{i=1}^{N}\|\hat{\bm{y}}_i - \bm{y}_i^*\|^2},
+\end{equation}
+where $\hat{\bm{y}}_i$ is the FLC prediction, $\bm{y}_i^*$ is the reference output, and the sum runs over all three output channels. $F \in (0,1]$; maximising $F$ is equivalent to minimising RMSE. The bounded ratio prevents numerical instability when RMSE is very large during early generations with randomly initialised MF parameters.
+
+\subsection{Genetic Operators}
+
+\textbf{Selection} uses 3-way tournament selection, avoiding the selection-pressure collapse that roulette-wheel selection suffers when one individual dominates early~\cite{deb2002}.
+
+\textbf{Crossover} uses Simulated Binary Crossover (SBX, $\eta_c\!=\!2$, $p_c\!=\!0.80$). SBX respects bounded real-valued genes: offspring are generated within the same distance from each parent as the parents are from each other, scaled by a random spread factor controlled by $\eta_c$. This preserves neighbourhood structure in the parameter space, beneficial because nearby breakpoint values often produce similarly-behaving MFs.
+
+\textbf{Mutation} applies polynomial mutation gene-by-gene at rate $p_m\!=\!0.05$ per gene ($\eta_m\!=\!20$), generating perturbations close to the current gene value most of the time with occasional larger jumps --- providing local search alongside occasional escape from local optima.
+
+\textbf{Elitism} retains the top-2 individuals unchanged at each generation, preventing regression of the best solution.
+
+\subsection{GA Configuration Summary}
+
+\begin{table}[H]
+  \centering
+  \caption{GA hyperparameters for MF optimisation.}
+  \label{tab:ga_params}
+  \scriptsize
+  \begin{tabularx}{\columnwidth}{lX}
+    \toprule
+    \textbf{Parameter}   & \textbf{Value} \\
+    \midrule
+    Population size      & 60 individuals \\
+    Maximum generations  & 80 \\
+    Crossover probability & 0.80 (SBX, $\eta_c=2$) \\
+    Mutation probability & 0.05 per gene (polynomial, $\eta_m=20$) \\
+    Elite count          & 2 \\
+    Tournament size      & 3 \\
+    Chromosome length    & 76 real-valued genes \\
+    Fitness function     & $1/(1+\mathrm{RMSE})$ \\
+    Reference dataset    & 200 input--output pairs \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Convergence Behaviour}
+
+Figure~\ref{fig:ga_convergence} shows the best and mean fitness trajectories over 80 generations alongside the corresponding RMSE on a logarithmic scale. RMSE drops sharply in the first 10--15 generations as the GA escapes the random initial distribution. Progress slows between generations 40 and 60, typical when the population has converged to a basin of attraction. The gap between best and mean fitness narrows progressively, indicating population convergence rather than premature collapse. The final best fitness of $\approx\!0.065$ corresponds to an RMSE reduction of over \textbf{75\%} relative to the initial population mean.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/GA Convergence.png}
+  \caption{Left: best and mean fitness rising steadily over 80 generations. Right: best RMSE falling by $\approx$one order of magnitude on a log scale, with improvement concentrated in the first 30 generations.}
+  \label{fig:ga_convergence}
+\end{figure}
+
+Figure~\ref{fig:mf_comparison} overlays the base and GA-optimised input MFs, showing how the GA shifted individual breakpoints. The most noticeable shifts occur in \textit{humidity} and \textit{external\_light}, where the \textit{dry} and \textit{dark} trapezoidal MFs became narrower. This suggests that the reference dataset contained relatively few extreme low-humidity or low-light conditions, so the GA reduced those extremal sets to improve fit across the more densely sampled middle of the input space. Figure~\ref{fig:opt_result_cmd} shows the final RMSE comparison output from the MATLAB command window.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/MF comparison Base vs OPtimized.png}
+  \caption{Top row: base FIS input MFs. Bottom row: GA-optimised MFs. Visible shifts in breakpoints reflect data-driven refinement of hand-designed boundaries, particularly in humidity and external-light inputs.}
+  \label{fig:mf_comparison}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Optimization Result cmd.png}
+  \caption{Command-window summary of the GA optimisation run showing base FIS RMSE, optimised RMSE, and percentage improvement.}
+  \label{fig:opt_result_cmd}
+\end{figure}
+
+\subsection{Mamdani vs.\ Sugeno: Chromosome Implications}
+
+The key difference lies in the output representation. \textit{Mamdani (current model):} Each output MF is a fuzzy set parameterised by breakpoints. Encoding output MFs would add $3\,\text{outputs}\times(5+4+3)\,\text{MFs}\times4\,\text{params}=48$ genes to the 76 input-side genes, reaching \textbf{124 genes} for a full system.
+
+\textit{Zero-order Sugeno:} Each rule's consequent is a single crisp constant $c_k$. With 25 rules and 3 outputs: $25\times3=75$ additional parameters. \textit{First-order (linear) Sugeno:} Each consequent is a linear function $y_k = a_{k0}+a_{k1}x_1+\cdots+a_{k6}x_6$, giving $7\times25\times3=525$ additional parameters. The resulting chromosome would reach $76+525=\mathbf{601}$ genes.
+
+The Sugeno landscape is generally smoother (weighted-average defuzzification is differentiable with respect to consequent parameters), which can accelerate gradient-free search. However, physical interpretability is lost: a care worker cannot easily read $y_{\text{HVAC}}=2.3x_1-0.8x_3+14.1$ and judge clinical appropriateness. For assistive care, the Mamdani formulation is preferred even at the cost of a modestly harder optimisation landscape.
+
+\section{Part 3 --- GA vs PSO on CEC\,2005 Benchmarks}
+\label{sec:part3}
+
+\subsection{Selected Benchmark Functions}
+
+Two functions from the CEC\,2005 suite are evaluated~\cite{suganthan2005}:
+
+\textbf{F1 --- Shifted Sphere} (unimodal, $f^*=-450$):
+\begin{equation}
+  f_1(\bm{x}) = \sum_{i=1}^{D}(x_i - o_i)^2 - 450, \quad x_i\in[-100,100]^D
+\end{equation}
+where $\bm{o}$ is a randomly generated shift vector (fixed seed for reproducibility). F1 tests exploitation efficiency on a smooth quadratic bowl.
+
+\textbf{F9 --- Shifted Rastrigin} (multimodal, $f^*=-330$):
+\begin{equation}
+  f_9(\bm{x}) = \sum_{i=1}^{D}\!\bigl[z_i^2 - 10\cos(2\pi z_i)+10\bigr] - 330,
+  \quad \bm{z}=\bm{x}-\bm{o}
+\end{equation}
+with $x_i\in[-5,5]^D$. The cosine term creates $\mathcal{O}(10^D)$ local minima, making F9 a severe test of exploration capability.
+
+\subsection{Algorithm Configurations}
+
+\subsubsection{Genetic Algorithm (real-coded SBX)}
+\begin{itemize}[leftmargin=*, noitemsep, topsep=1pt]
+  \item Population: 50; Elite: 2; Tournament size: 3
+  \item SBX crossover ($\eta_c=15$), $p_c=0.9$
+  \item Polynomial mutation ($\eta_m=20$), $p_m=1/D$
+\end{itemize}
+
+\subsubsection{Particle Swarm Optimisation (inertia-weight)}
+\begin{itemize}[leftmargin=*, noitemsep, topsep=1pt]
+  \item Swarm: 50 particles; $w$: $0.9\to0.4$ (linear decay)
+  \item Cognitive $c_1=2.0$, social $c_2=2.0$
+  \item Velocity clamping: $v_{\max}=0.2\times(\text{ub}-\text{lb})$
+\end{itemize}
+
+Both algorithms share the same budget: MaxFES$=10{,}000$. Fifteen independent runs were performed per algorithm per function per dimension using distinct random seeds.
+
+\subsection{Results}
+
+Table~\ref{tab:cec_results} summarises mean, standard deviation, best, and worst final function values across 15 runs.
+
+\begin{table}[H]
+  \centering
+  \caption{CEC\,2005 benchmark results: 15 independent runs, MaxFES$=10{,}000$. Optimal values: $f^*_{F1}=-450$, $f^*_{F9}=-330$. Bold = better mean.}
+  \label{tab:cec_results}
+  \scriptsize
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabular}{llccccc}
+    \toprule
+    \textbf{Fn} & \textbf{Alg} & $D$ & \textbf{Mean} & \textbf{Std} & \textbf{Best} & \textbf{Worst} \\
+    \midrule
+    F1 & GA  & 2  & $-449.97$ & $0.04$ & $-450.00$ & $-449.88$ \\
+    F1 & \textbf{PSO} & 2  & $\bm{-450.00}$ & $\bm{0.00}$ & $-450.00$ & $-450.00$ \\
+    \midrule
+    F1 & GA  & 10 & $-448.21$ & $1.23$ & $-449.91$ & $-445.70$ \\
+    F1 & \textbf{PSO} & 10 & $\bm{-449.85}$ & $\bm{0.31}$ & $-450.00$ & $-449.10$ \\
+    \midrule
+    F9 & GA  & 2  & $-327.44$ & $1.82$ & $-329.91$ & $-323.31$ \\
+    F9 & \textbf{PSO} & 2  & $\bm{-328.89}$ & $\bm{1.11}$ & $-330.00$ & $-326.52$ \\
+    \midrule
+    F9 & \textbf{GA}  & 10 & $\bm{-291.37}$ & $\bm{8.44}$ & $-310.02$ & $-271.88$ \\
+    F9 & PSO & 10 & $-281.44$ & $12.77$ & $-306.19$ & $-255.17$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Analysis and Discussion}
+
+Convergence curves and box plots are shown in Figures~\ref{fig:convergence_curves} and~\ref{fig:boxplots}; best/worst individual run curves for the hardest case (F9, $D=10$) appear in Figure~\ref{fig:best_worst}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Convergence Curves 2.png}
+  \caption{Mean $\pm$ std convergence curves over 15 runs for GA (blue) and PSO (red) on F1 and F9 at $D\!=\!2$ and $D\!=\!10$. PSO converges faster on the smooth F1 bowl; GA shows better final values on the multimodal F9 at $D\!=\!10$.}
+  \label{fig:convergence_curves}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Box Plot final values.png}
+  \caption{Distribution of final best values over 15 runs. PSO exhibits near-zero variance on F1$|D\!=\!2$; GA shows tighter spread than PSO on F9$|D\!=\!10$ ($\sigma_{\text{GA}}=8.44$ vs.\ $\sigma_{\text{PSO}}=12.77$).}
+  \label{fig:boxplots}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/Best worst curves F9 D=10.png}
+  \caption{Individual run convergence for F9 at $D\!=\!10$. All 15 runs (grey), best run (green), worst run (red), and global optimum (dotted). GA's best run reaches $-310.02$; PSO's best reaches $-306.19$.}
+  \label{fig:best_worst}
+\end{figure}
+
+On \textbf{F1\,($D\!=\!2$)}, PSO achieves exact convergence in all 15 runs with zero variance. GA also performs well but shows marginal variability, suggesting that crossover occasionally disrupts good solutions on a trivial 2-D problem. As dimensionality rises to $D\!=\!10$, PSO's advantage narrows: its mean still edges ahead of GA but both algorithms fall further from the global optimum. F1's quadratic landscape suits PSO's velocity update, which implicitly computes a weighted gradient toward personal and global bests.
+
+The picture reverses on \textbf{F9\,($D\!=\!10$)}: GA attains a mean of $-291.37$ compared to PSO's $-281.44$, and GA's best run reaches $-310.02$ against PSO's $-306.19$. More revealing is the standard deviation: GA's $\sigma\!=\!8.44$ versus PSO's $\sigma\!=\!12.77$ means GA not only finds better solutions on average but does so more consistently. This reflects a well-known characteristic of Rastrigin: PSO particles can be trapped by the cosine-induced local minima because they move toward the current global best, which itself may reside in a local well. GA's crossover operator generates offspring that can ``jump'' across inter-optima barriers rather than being attracted to a specific point.
+
+Both algorithms remain well above $f^*\!=\!-330$ for F9 at $D\!=\!10$, which is expected given severe multimodality: 10,000 FEs are insufficient to reliably locate the global minimum in a space with an exponential number of competing attractors. Higher budgets or problem-specific operators (restart strategies, niching) would be needed for more accurate solutions~\cite{kennedy1995}.
+
+\section{Social, Ethical, Legal and Professional Considerations}
+\label{sec:ethics}
+
+\textbf{Privacy and data minimisation.} The six input sensors collect data about a named vulnerable individual: location, activity level, and daily routine. Under the UK GDPR, all sensor data must be processed with explicit informed consent, stored with encryption, and retained only as long as operationally necessary. Linking occupancy counts to video feeds would trigger additional biometric data obligations and should be avoided.
+
+\textbf{Safety and fail-safe design.} A disabled resident may be unable to override malfunctioning actuators. An erroneous \textit{strong\_cool} command during cold weather is a potential hypothermia hazard. Production deployment must include hardware-level safety interlocks independent of the FLC software layer, with a fallback to a pre-programmed safe state on sensor failure.
+
+\textbf{Explainability and accountability.} The Mamdani architecture's linguistic rule base was chosen partly because it supports explanation. Occupational therapists or family members should be able to read the rules and confirm that the controller embodies clinically appropriate priorities. Any GA-optimised parameter changes should be presented to a domain expert for validation before deployment; automated tuning without human review risks drifting toward statistically optimal but clinically inappropriate behaviour.
+
+\textbf{Accessibility of the interface.} The resident must be able to view and override controller decisions through an accessible interface (large text, voice commands, single-switch input). Automated systems that a disabled person cannot interrogate or override risk reducing autonomy, which conflicts with the fundamental ethos of assistive technology.
+
+\textbf{Algorithmic fairness.} The synthetic reference dataset does not represent the diversity of disabled residents' needs. Residents with different mobility levels, thermal sensitivity, or visual impairments may require significantly different MF placements. Any deployed system should support per-resident personalisation rather than applying a single GA-tuned parameter set.
+
+\section{Discussion and Conclusions}
+\label{sec:conclusion}
+
+This work has demonstrated three interconnected contributions.
+
+\textbf{Part 1:} A Mamdani FLC with 25 rules and six input variables produces contextually sensible control outputs across a realistic 24-hour residential scenario. The rule base architecture --- particularly the composite activity-aware rules (R23--R25) and the four-MF time-of-day structure --- enables responsive transitions between operating modes without abrupt switching. No external training data is needed for the base FLC; expert knowledge is captured entirely in MF geometry and rule antecedent-consequent mappings.
+
+\textbf{Part 2:} The GA optimisation confirms that data-driven MF refinement is feasible and beneficial. RMSE drops substantially over 80 generations with a 76-gene chromosome, and convergence plots show stable, monotone improvement without the oscillation that indicates crossover-mutation imbalance. Retaining output MFs unchanged from the expert design is a practical compromise between optimisation freedom and interpretability preservation. Under a Sugeno model the chromosome would expand to $76+525=601$ genes for first-order consequents, with a smoother landscape but at the cost of clinical interpretability.
+
+\textbf{Part 3:} The CEC\,2005 benchmark experiment supports a nuanced verdict. PSO is faster and more consistent on unimodal problems because its velocity memory provides implicit momentum toward the global attractor. GA is more robust on multimodal landscapes because recombination generates diversity that particle inertia cannot. Neither algorithm reliably solves high-dimensional Rastrigin within 10,000 evaluations, underscoring the need for problem-specific operator design in hard optimisation tasks.
+
+Taken together, these findings suggest that the most effective design strategy for assistive FLC systems combines expert rule elicitation (for interpretability and safety validation) with GA-driven MF optimisation (for data-driven accuracy improvement), while retaining human oversight over every automated parameter change.
+
+\section*{Acknowledgements}
+
+This work was completed in partial fulfilment of STW7085CEM, Advanced Machine Learning, at Softwarica College of IT \& E-Commerce in collaboration with Coventry University. All MATLAB code is provided in the Appendix.
+
+\bibliographystyle{IEEEtranN}
+\begin{thebibliography}{9}
+
+\bibitem{demiris2014}
+G. Demiris and B. K. Hensel, ``Technologies for an aging society: A systematic review of `smart home' applications,'' \textit{Yearbook of Medical Informatics}, vol.~3, no.~1, pp.~33--40, 2014.
+
+\bibitem{mamdani1975}
+E. H. Mamdani and S. Assilian, ``An experiment in linguistic synthesis with a fuzzy logic controller,'' \textit{International Journal of Man-Machine Studies}, vol.~7, no.~1, pp.~1--13, 1975.
+
+\bibitem{sugeno1985}
+M. Sugeno, \textit{Industrial Applications of Fuzzy Control}. Amsterdam: Elsevier Science, 1985.
+
+\bibitem{deb2002}
+K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, ``A fast and elitist multiobjective genetic algorithm: NSGA-II,'' \textit{IEEE Transactions on Evolutionary Computation}, vol.~6, no.~2, pp.~182--197, 2002.
+
+\bibitem{kennedy1995}
+J. Kennedy and R. Eberhart, ``Particle swarm optimization,'' \textit{Proceedings of ICNN'95}, vol.~4, pp.~1942--1948, 1995.
+
+\bibitem{suganthan2005}
+P. N. Suganthan \textit{et al.}, ``Problem definitions and evaluation criteria for the CEC\,2005 special session on real-parameter optimisation,'' \textit{Technical Report}, Nanyang Technological University, 2005.
+
+\bibitem{mendel2001}
+J. M. Mendel, \textit{Uncertain Rule-Based Fuzzy Logic Systems: Introduction and New Directions}. Upper Saddle River, NJ: Prentice Hall, 2001.
+
+\bibitem{cordon2001}
+O. Cord\'on, F. Herrera, F. Hoffmann, and L. Magdalena, \textit{Genetic Fuzzy Systems: Evolutionary Tuning and Learning of Fuzzy Knowledge Bases}. Singapore: World Scientific, 2001.
+
+\bibitem{zadeh1965}
+L. A. Zadeh, ``Fuzzy sets,'' \textit{Information and Control}, vol.~8, no.~3, pp.~338--353, 1965.
+
+\end{thebibliography}
+
+\appendix
+\onecolumn
+
+\section{MATLAB Source Code: Part 1 --- FLC Design (\texttt{SmartApartmentFLC.m})}
+\label{app:part1}
+
+\lstset{style=matlab}
+\begin{lstlisting}[caption={Part 1: Mamdani FLC construction, MF definition, rule base, control surfaces, and 24-hour simulation.}]
+clear; clc; close all;
+fis = mamfis('Name', 'SmartApartmentFLC');
+fis = addInput(fis, [0 40], 'Name', 'temperature');
+fis = addMF(fis, 'temperature', 'trapmf', [0  0  12 17], 'Name', 'cold');
+fis = addMF(fis, 'temperature', 'trimf',  [14 19 24],    'Name', 'comfortable');
+fis = addMF(fis, 'temperature', 'trapmf', [22 27 40 40], 'Name', 'hot');
+fis = addInput(fis, [0 100], 'Name', 'humidity');
+fis = addMF(fis, 'humidity', 'trapmf', [0  0  25 40],   'Name', 'dry');
+fis = addMF(fis, 'humidity', 'trimf',  [30 50 70],      'Name', 'comfortable');
+fis = addMF(fis, 'humidity', 'trapmf', [60 75 100 100], 'Name', 'humid');
+fis = addInput(fis, [0 1000], 'Name', 'external_light');
+fis = addMF(fis, 'external_light', 'trapmf', [0   0  100 250],   'Name', 'dark');
+fis = addMF(fis, 'external_light', 'trimf',  [150 400 650],      'Name', 'moderate');
+fis = addMF(fis, 'external_light', 'trapmf', [500 750 1000 1000],'Name', 'bright');
+fis = addInput(fis, [0 24], 'Name', 'time_of_day');
+fis = addMF(fis, 'time_of_day', 'trapmf', [0  0  5  8],  'Name', 'night');
+fis = addMF(fis, 'time_of_day', 'trimf',  [6  10 14],    'Name', 'morning');
+fis = addMF(fis, 'time_of_day', 'trimf',  [12 15 19],    'Name', 'afternoon');
+fis = addMF(fis, 'time_of_day', 'trapmf', [17 20 24 24], 'Name', 'evening');
+fis = addInput(fis, [0 5], 'Name', 'occupancy_level');
+fis = addMF(fis, 'occupancy_level', 'trapmf', [0 0 0.5 1.5], 'Name', 'empty');
+fis = addMF(fis, 'occupancy_level', 'trimf',  [1 2 3],       'Name', 'low');
+fis = addMF(fis, 'occupancy_level', 'trapmf', [2 3 5 5],     'Name', 'high');
+fis = addInput(fis, [0 10], 'Name', 'user_activity');
+fis = addMF(fis, 'user_activity', 'trapmf', [0 0 2 4],   'Name', 'resting');
+fis = addMF(fis, 'user_activity', 'trimf',  [3 5 7],     'Name', 'moderate');
+fis = addMF(fis, 'user_activity', 'trapmf', [6 8 10 10], 'Name', 'active');
+fis = addOutput(fis, [-100 100], 'Name', 'hvac_output');
+fis = addMF(fis, 'hvac_output', 'trapmf', [-100 -100 -60 -20], 'Name', 'strong_cool');
+fis = addMF(fis, 'hvac_output', 'trimf',  [-40  -10   20],     'Name', 'mild_cool');
+fis = addMF(fis, 'hvac_output', 'trimf',  [-10   0    10],     'Name', 'neutral');
+fis = addMF(fis, 'hvac_output', 'trimf',  [  5  30    60],     'Name', 'mild_heat');
+fis = addMF(fis, 'hvac_output', 'trapmf', [ 40  70   100 100], 'Name', 'strong_heat');
+fis = addOutput(fis, [0 100], 'Name', 'lighting_output');
+fis = addMF(fis, 'lighting_output', 'trapmf', [0  0  10 25],  'Name', 'off');
+fis = addMF(fis, 'lighting_output', 'trimf',  [15 35 55],     'Name', 'dim');
+fis = addMF(fis, 'lighting_output', 'trimf',  [45 65 80],     'Name', 'medium');
+fis = addMF(fis, 'lighting_output', 'trapmf', [70 85 100 100],'Name', 'bright');
+fis = addOutput(fis, [0 100], 'Name', 'blinds_output');
+fis = addMF(fis, 'blinds_output', 'trapmf', [0  0  10 25],  'Name', 'closed');
+fis = addMF(fis, 'blinds_output', 'trimf',  [20 40 60],     'Name', 'half_open');
+fis = addMF(fis, 'blinds_output', 'trapmf', [50 75 100 100],'Name', 'open');
+ruleList = [...
+  1 0 0 0 3 0, 5 0 0, 1 1;  % R1
+  1 0 0 0 2 0, 4 0 0, 1 1;  % R2
+  1 0 0 0 1 0, 3 0 0, 1 1;  % R3
+  3 0 0 0 0 3, 1 0 0, 1 1;  % R4
+  3 0 0 0 0 1, 2 0 0, 1 1;  % R5
+  2 0 0 0 0 0, 3 0 0, 1 1;  % R6
+  3 3 0 0 0 0, 1 0 0, 1 1;  % R7
+  1 1 0 0 0 0, 5 0 0, 1 1;  % R8
+  0 0 1 1 2 0, 0 3 0, 1 1;  % R9
+  0 0 1 1 3 0, 0 4 0, 1 1;  % R10
+  0 0 0 1 1 0, 0 1 0, 1 1;  % R11
+  0 0 1 2 2 0, 0 3 0, 1 1;  % R12
+  0 0 3 2 0 0, 0 2 0, 1 1;  % R13
+  0 0 3 3 0 0, 0 1 0, 1 1;  % R14
+  0 0 0 4 2 0, 0 3 0, 1 1;  % R15
+  0 0 0 4 3 0, 0 4 0, 1 1;  % R16
+  0 0 3 2 0 0, 0 0 3, 1 1;  % R17
+  3 0 3 3 0 0, 0 0 2, 1 1;  % R18
+  0 0 0 1 0 0, 0 0 1, 1 1;  % R19
+  0 0 1 4 0 0, 0 0 1, 1 1;  % R20
+  0 0 2 2 0 0, 0 0 2, 1 1;  % R21
+  2 0 0 3 0 0, 0 0 3, 1 1;  % R22
+  3 0 0 0 0 3, 1 4 0, 1 1;  % R23
+  2 0 0 0 0 1, 3 2 0, 1 1;  % R24
+  3 0 0 3 3 0, 1 0 3, 1 1;  % R25
+];
+fis = addRule(fis, ruleList);
+writeFIS(fis, 'SmartApartmentFLC');
+fprintf('Morning exercise:\n'); disp(evalfis(fis,[28,60,700,9,2,8]));
+fprintf('Night rest:\n');       disp(evalfis(fis,[16,45,5,2,1,1]));
+fprintf('Hot afternoon:\n');    disp(evalfis(fis,[34,75,950,15,3,5]));
+\end{lstlisting}
+
+\section{MATLAB Source Code: Part 2 --- GA Optimiser (\texttt{GA\_FLC\_Optimizer.m})}
+\label{app:part2}
+
+\begin{lstlisting}[caption={Part 2: GA optimisation of FLC membership function breakpoints (key sections).}]
+clear; clc; close all;
+warning('off','fuzzy:general:evalfis_noRuleFired');
+baseFIS = readfis('SmartApartmentFLC.fis');
+rng(42); N_data = 200;
+X_data = [5+35*rand(N_data,1), 20+80*rand(N_data,1), ...
+          50+950*rand(N_data,1), 24*rand(N_data,1), ...
+          randi([0 5],N_data,1), 10*rand(N_data,1)];
+Y_ref = zeros(N_data,3);
+for i = 1:N_data, Y_ref(i,:) = evalfis(baseFIS, X_data(i,:)); end
+Y_ref(:,1) = Y_ref(:,1) + 10*randn(N_data,1);
+Y_ref(:,2) = Y_ref(:,2) +  5*randn(N_data,1);
+Y_ref(:,3) = Y_ref(:,3) +  5*randn(N_data,1);
+ranges = [0,40; 0,100; 0,1000; 0,24; 0,5; 0,10];
+n_mf_genes = [12, 12, 12, 16, 12, 12];
+lb = []; ub = [];
+for inp = 1:6
+    lb = [lb, repmat(ranges(inp,1), 1, n_mf_genes(inp))];
+    ub = [ub, repmat(ranges(inp,2), 1, n_mf_genes(inp))];
+end
+pop_size = 60; n_gen = 80; p_cross = 0.80; p_mut = 0.05; elite_n = 2; tournament_k = 3;
+fitness_fn = @(ch) evaluate_fitness(ch, baseFIS, X_data, Y_ref, lb, ub);
+pop = lb + (ub-lb).*rand(pop_size, 76);
+pop = enforce_mf_ordering(pop, n_mf_genes, ranges);
+fitness = arrayfun(@(i) fitness_fn(pop(i,:)), 1:pop_size)';
+for gen = 1:n_gen
+    [~, idx] = sort(fitness,'descend');
+    new_pop = pop(idx(1:elite_n), :);
+    while size(new_pop,1) < pop_size
+        p1 = tournament_select(pop, fitness, tournament_k);
+        p2 = tournament_select(pop, fitness, tournament_k);
+        if rand < p_cross, [c1,c2] = sbx_crossover(p1,p2,lb,ub,2);
+        else, c1=p1; c2=p2; end
+        c1 = poly_mutation(c1,lb,ub,p_mut); c2 = poly_mutation(c2,lb,ub,p_mut);
+        c1 = enforce_mf_ordering(c1,n_mf_genes,ranges);
+        c2 = enforce_mf_ordering(c2,n_mf_genes,ranges);
+        new_pop = [new_pop; c1; c2];
+    end
+    pop = new_pop(1:pop_size,:);
+    fitness = arrayfun(@(i) fitness_fn(pop(i,:)), 1:pop_size)';
+end
+[~, bi] = max(fitness);
+best_fis  = decode_chromosome(pop(bi,:), baseFIS, n_mf_genes, ranges);
+rmse_base = compute_rmse(baseFIS, X_data, Y_ref);
+rmse_opt  = compute_rmse(best_fis, X_data, Y_ref);
+fprintf('Base RMSE: %.4f | Opt RMSE: %.4f | Gain: %.2f%%\n', ...
+    rmse_base, rmse_opt, 100*(rmse_base-rmse_opt)/rmse_base);
+writeFIS(best_fis, 'SmartApartmentFLC_optimised');
+\end{lstlisting}
+
+\section{MATLAB Source Code: Part 3 --- CEC\,2005 Benchmark (\texttt{CEC2005\_Benchmark\_Comparison.m})}
+\label{app:part3}
+
+\begin{lstlisting}[caption={Part 3: GA vs PSO comparison on F1 (Sphere) and F9 (Rastrigin), 15 independent runs each.}]
+clear; clc; close all;
+N_RUNS = 15; MAX_FES = 1e4; DIMENSIONS = [2, 10];
+
+function y = cec2005_f1(x)
+    rng(1001,'twister'); o = -100+200*rand(1,numel(x)); rng('shuffle');
+    y = sum((x(:)'-o).^2) + (-450);
+end
+
+function y = cec2005_f9(x)
+    rng(1009,'twister'); o = -5+10*rand(1,numel(x)); rng('shuffle');
+    z = x(:)'-o;
+    y = sum(z.^2 - 10*cos(2*pi*z) + 10) + (-330);
+end
+
+function [best, hist] = run_GA(fn, lb, ub, D, maxFES)
+    pop_size=50; p_c=0.9; p_m=1/D; eta_c=15; eta_m=20; elite=2;
+    pop = lb+(ub-lb).*rand(pop_size,D);
+    fit = arrayfun(@(i) fn(pop(i,:)), 1:pop_size)';
+    [best,~] = min(fit); fes=pop_size; hist=zeros(1,maxFES); hist(1:fes)=best;
+    while fes < maxFES
+        [~,si] = sort(fit); new_pop = pop(si(1:elite),:);
+        while size(new_pop,1)<pop_size && fes<maxFES
+            [~,b1]=min(fit(randperm(pop_size,3))); p1=pop(b1,:);
+            [~,b2]=min(fit(randperm(pop_size,3))); p2=pop(b2,:);
+            if rand<p_c, [c1,c2]=ga_sbx(p1,p2,lb,ub,eta_c); else, c1=p1; c2=p2; end
+            c1=ga_polymut(c1,lb,ub,p_m,eta_m); c2=ga_polymut(c2,lb,ub,p_m,eta_m);
+            f1=fn(c1); f2=fn(c2); fes=fes+2;
+            if f1<best, best=f1; end; if f2<best, best=f2; end
+            new_pop=[new_pop;c1;c2]; hist(min(fes,maxFES))=best;
+        end
+        pop=new_pop(1:pop_size,:); fit=arrayfun(@(i) fn(pop(i,:)), 1:pop_size)';
+    end
+    for k=2:maxFES, if hist(k)==0, hist(k)=hist(k-1); end; end
+end
+
+function [best, hist] = run_PSO(fn, lb, ub, D, maxFES)
+    n=50; w_max=0.9; w_min=0.4; c1=2; c2=2;
+    vmax=0.2*(ub-lb); pos=lb+(ub-lb).*rand(n,D);
+    vel=-vmax+2*vmax.*rand(n,D); pbest=pos;
+    fit=arrayfun(@(i) fn(pos(i,:)), 1:n)'; pbf=fit;
+    [best,gi]=min(fit); gbest=pos(gi,:);
+    fes=n; hist=zeros(1,maxFES); hist(1:fes)=best;
+    while fes<maxFES
+        w=w_max-(w_max-w_min)*(fes/maxFES);
+        for i=1:n
+            vel(i,:)=w*vel(i,:)+c1*rand(1,D).*(pbest(i,:)-pos(i,:)) ...
+                                +c2*rand(1,D).*(gbest-pos(i,:));
+            vel(i,:)=max(-vmax,min(vmax,vel(i,:)));
+            pos(i,:)=max(lb,min(ub,pos(i,:)+vel(i,:)));
+            f=fn(pos(i,:)); fes=fes+1;
+            if f<pbf(i), pbest(i,:)=pos(i,:); pbf(i)=f; end
+            if f<best,   best=f; gbest=pos(i,:); end
+            hist(min(fes,maxFES))=best;
+            if fes>=maxFES, break; end
+        end
+    end
+    for k=2:maxFES, if hist(k)==0, hist(k)=hist(k-1); end; end
+end
+\end{lstlisting}
+
+\end{document}

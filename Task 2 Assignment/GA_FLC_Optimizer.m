@@ -1,6 +1,5 @@
 %% =========================================================================
 %  GA_FLC_Optimizer.m
-%  STW7085CEM – Advanced Machine Learning | Task 2, Part 2
 %
 %  Genetic Algorithm to optimise membership function parameters of the
 %  Mamdani FLC designed in Part 1.
@@ -10,17 +9,27 @@
 %    - trapmf needs 4 params [a b c d]
 %    - trimf  needs 3 params [a b c]  (padded to 4 by repeating last)
 %
-%  Input MFs  : 6 inputs × 3 MFs × 4 params = 72 genes
-%  Output MFs : 3 outputs, 5+4+3 = 12 MFs × 4 params = 48 genes
-%  Total chromosome length = 120 real-valued genes
+%  Input MF gene allocation (only input MFs are optimised):
+%    temperature   : 3 MFs × 4 params = 12 genes
+%    humidity      : 3 MFs × 4 params = 12 genes
+%    external_light: 3 MFs × 4 params = 12 genes
+%    time_of_day   : 4 MFs × 4 params = 16 genes  ← 4 MFs, not 3
+%    occupancy     : 3 MFs × 4 params = 12 genes
+%    user_activity : 3 MFs × 4 params = 12 genes
+%                                     ----------
+%  Total chromosome length = 76 real-valued genes
+%
+%  NOTE on full-system encoding (for Mamdani vs Sugeno comparison):
+%    If output MFs were also optimised, 12 output MFs × 4 params = 48 genes
+%    would be added, giving 76 + 48 = 124 genes total.
+%    A first-order Sugeno model would instead add 25 rules × 3 outputs × 7
+%    coefficients = 525 output params, giving 76 + 525 = 601 genes total.
 %
 %  FITNESS FUNCTION:
 %    Root-Mean-Squared-Error (RMSE) between FLC output and a
 %    synthetic reference dataset of 200 input-output examples.
 %    Fitness = 1 / (1 + RMSE)   [maximise → minimise RMSE]
 %
-%  Author : STW7085CEM Student
-%  Date   : 2025
 % =========================================================================
 
 clear; clc; close all;
@@ -325,12 +334,18 @@ function fis = decode_chromosome(chrom, baseFIS, n_mf_genes, ranges)
             params = genes(gene_ptr : gene_ptr+3);
             gene_ptr = gene_ptr + 4;
             params = sort(params);
-            % Determine type from base FIS
+            % Determine type from base FIS and extract the correct number of
+            % parameters. trimf uses 3 params [a b c]; we store 4 genes per
+            % MF slot for uniform chromosome length, so we use positions
+            % [1, 2, 4] — taking the lowest, middle, and highest sorted
+            % values as left-base, peak, and right-base respectively.
+            % This preserves a valid triangle (a ≤ b ≤ c) after sorting.
+            % trapmf uses all 4 params [a b c d] directly.
             mf_type = baseFIS.Inputs(inp).MembershipFunctions(mf_idx).Type;
             if strcmp(mf_type, 'trimf')
                 params_use = [params(1), params(2), params(4)];
             else
-                params_use = params;
+                params_use = params;  % trapmf: all 4 sorted params
             end
             fis.Inputs(inp).MembershipFunctions(mf_idx).Parameters = params_use;
         end

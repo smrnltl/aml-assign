@@ -1,6 +1,4 @@
 %% =========================================================================
-%  CEC2005_Benchmark_Comparison.m
-%  STW7085CEM – Advanced Machine Learning | Task 2, Part 3
 %
 %  Compares Genetic Algorithm (GA) vs Particle Swarm Optimisation (PSO)
 %  on CEC'2005 functions F1 (Shifted Sphere) and F9 (Shifted Rastrigin)
@@ -10,8 +8,6 @@
 %  Reports: mean, std, best, worst of final function value at convergence.
 %  Produces: convergence curves, box plots, summary statistics table.
 %
-%  Author : STW7085CEM Student
-%  Date   : 2025
 % =========================================================================
 
 clear; clc; close all;
@@ -247,6 +243,9 @@ end
 history(1:min(fes, max_fes)) = best_val;
 
 while fes < max_fes
+    % Snapshot current fitness before selection so elite fitness values
+    % can be carried over without re-evaluation (avoids FES double-counting)
+    fitness_prev = fit;
     [~, sort_idx] = sort(fit);
     new_pop = pop(sort_idx(1:elite_n), :);  % elites
 
@@ -278,14 +277,20 @@ while fes < max_fes
     end
 
     pop = new_pop(1:pop_size,:);
-    for i = 1:pop_size
+    % Re-evaluate only the non-elite individuals (indices elite_n+1 : pop_size).
+    % Elite individuals at rows 1:elite_n were carried over unchanged and their
+    % fitness values are still valid — re-evaluating them would double-count FES.
+    for i = elite_n+1 : pop_size
         fit(i) = fn(pop(i,:));
+        fes    = fes + 1;
     end
-    fes = fes + pop_size;
+    % Elites retain their fitness from the previous generation
+    [~, sort_idx_prev] = sort(fitness_prev, 'descend');
+    fit(1:elite_n) = fitness_prev(sort_idx_prev(1:elite_n));
     [cur_best,~] = min(fit);
     if cur_best < best_val; best_val = cur_best; end
     idx_fill = min(fes, max_fes);
-    history(max(1,idx_fill-pop_size+1):idx_fill) = best_val;
+    history(max(1,idx_fill-(pop_size-elite_n)+1):idx_fill) = best_val;
 end
 
 % Fill remainder of history
@@ -400,6 +405,11 @@ end
 %% ---- CEC2005 F1: Shifted Sphere ----------------------------------------
 function y = cec2005_f1(x)
     D = numel(x);
+    % Shift vector o is generated from a fixed seed so it is identical across
+    % all calls for the same D. At D=2 the first 2 elements of o are used; at
+    % D=10 the first 10 elements are used — consistent with CEC 2005 convention
+    % where the shift vector is generated once for the maximum dimension and
+    % sub-vectors are taken for lower dimensions.
     rng(1001,'twister');
     o = -100+200*rand(1,D);
     rng('shuffle');
@@ -409,6 +419,9 @@ end
 %% ---- CEC2005 F9: Shifted Rastrigin -------------------------------------
 function y = cec2005_f9(x)
     D = numel(x);
+    % Shift vector o sampled from [-5,5]^D using a fixed seed for
+    % reproducibility. Sub-vectors are used for D=2 and D=10 consistently,
+    % matching CEC 2005 protocol (same shift direction, truncated to D dims).
     rng(1009,'twister');
     o = -5+10*rand(1,D);
     rng('shuffle');

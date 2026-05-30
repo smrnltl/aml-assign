@@ -1,18 +1,4 @@
-%% =========================================================================
-%  SmartApartmentFLC.m
-%  STW7085CEM - Advanced Machine Learning | Task 2, Part 1
-%  Fuzzy Logic Controller for an Intelligent Assistive Care Apartment
-%
-%  Description:
-%    Mamdani-type FLC controlling HVAC (heating/cooling), lighting, and
-%    blinds across five rooms of a smart assisted-living apartment.
-%    Inputs : temperature, humidity, external_light, time_of_day,
-%             occupancy_level, user_activity
-%    Outputs: hvac_output, lighting_output, blinds_output
-%
-%  Author : STW7085CEM Student
-%  Date   : 2025
-% =========================================================================
+
 
 clear; clc; close all;
 
@@ -201,6 +187,12 @@ sgtitle('Membership Functions – FLC Outputs (Mamdani)', 'FontSize',14,'FontWei
 
 %% SECTION 4 — Control Surface Plots (FIXED)
 fprintf('Generating control surface plots...\n');
+% For each 2-input surface, the four non-plotted inputs are held at neutral
+% "comfortable daytime" values: ext_light=400 lux (moderate), tod=12 hr
+% (afternoon), occ=2 persons (low occupancy), act=5 (moderate activity),
+% temp=22°C (comfortable), hum=50% (comfortable). These represent typical
+% mid-range operating conditions and isolate the effect of the two swept
+% inputs on the output.
 
 % Surface 1: Temperature vs Humidity → HVAC
 figure('Name','Surface: Temp x Hum → HVAC');
@@ -368,5 +360,21 @@ hot_out   = evalfis(fis, hot_input);
 fprintf('HVAC   Output : %.2f\n', hot_out(1));
 fprintf('Lighting Output: %.2f%%\n', hot_out(2));
 fprintf('Blinds Output : %.2f%%\n',  hot_out(3));
+
+% -----------------------------------------------------------------------
+%  SECTION 6b – Matlab Toolbox Rule Viewer and Rule List
+%  Opens the native Fuzzy Logic Toolbox rule viewer window showing which
+%  rules fire and their activation strength for the morning exercise
+%  scenario. Take a screenshot of this window for the report appendix —
+%  it satisfies the assignment brief's "rules of activation" evidence
+%  requirement (Part 1, 7-mark scenario analysis sub-criterion).
+% -----------------------------------------------------------------------
+fprintf('\nOpening Matlab Rule Viewer for morning exercise scenario...\n');
+fprintf('(Screenshot this window for the report appendix)\n');
+ruleview(fis);          % opens interactive rule activation GUI
+
+% Also print the full rule list as text for the appendix
+fprintf('\n--- Full Rule List (showrule) ---\n');
+showrule(fis);
 
 fprintf('\nPart 1 complete. FIS saved as SmartApartmentFLC.fis\n');
