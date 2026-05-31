@@ -1,8 +1,17 @@
-# Forward NPL Risk: GP Prediction with Fuzzy Linguistic Explanation
+# STW7085CEM Advanced Machine Learning — Assignment
 
-Code and data for **STW7085CEM Advanced Machine Learning, Task 1**.
+This repository contains both tasks for the module:
 
-This repository predicts forward Non-Performing Loan (NPL) change for ten Nepali commercial banks and explains each prediction in plain language. It combines four stages:
+- **[Task 1](#task-1--forward-npl-risk-gp-prediction-with-fuzzy-linguistic-explanation)** — Forward NPL risk prediction for Nepali commercial banks, combining a Gaussian Process, XGBoost + SHAP, a fuzzy layer, and a linguistic engine (Python, in [`Task 1/`](Task%201/)).
+- **[Task 2](#task-2--fuzzy-logic-control-and-evolutionary-optimisation)** — A Smart Apartment fuzzy logic controller with GA optimisation and a GA-vs-PSO benchmark study (MATLAB, in [`Task 2 Assignment/`](Task%202%20Assignment/)).
+
+---
+
+# Task 1 — Forward NPL Risk: GP Prediction with Fuzzy Linguistic Explanation
+
+Code and data for **Task 1**. All paths in this section are relative to [`Task 1/`](Task%201/).
+
+This part predicts forward Non-Performing Loan (NPL) change for ten Nepali commercial banks and explains each prediction in plain language. It combines four stages:
 
 1. **XGBoost + SHAP** — a gradient-boosted classifier with per-feature attributions.
 2. **Gaussian Process (GP)** — a Matern 5/2 ARD regression with a Student-t likelihood that also gives a deterioration probability and a per-row posterior variance.
@@ -113,3 +122,101 @@ The main worked example (ADBL 2074/2075) shows the override in action.
 - Bootstrap intervals use 2,000 resamples (`--n-boot 2000`).
 - Cross-validation is Leave-One-Year-Out for both XGBoost and the GP, so out-of-fold row indices align line by line across files.
 - Fuzzy width multipliers are tuned **in sample** on the same 80 rows the fuzzy system reports on; the upstream models are honest out of fold. This is stated in the report's limitations.
+
+---
+
+# Task 2 — Fuzzy Logic Control and Evolutionary Optimisation
+
+A separate MATLAB project in [`Task 2 Assignment/`](Task%202%20Assignment/). All paths in this section are relative to that folder. It has two parts:
+
+1. **A Smart Apartment Fuzzy Logic Controller (FLC)** — a Mamdani fuzzy system that decides HVAC, lighting, and blinds settings from six environmental and behavioural inputs.
+2. **Evolutionary optimisation** — a Genetic Algorithm (GA) that tunes the FLC's membership functions, plus a GA-vs-PSO comparison on two CEC'2005 benchmark functions.
+
+## Requirements
+
+- MATLAB (R2019b or later recommended — uses the `mamfis` / `addInput` / `addMF` object API)
+- **Fuzzy Logic Toolbox** (for `mamfis`, `evalfis`, `writeFIS`, the rule viewer, and control-surface plots)
+
+No other toolboxes are required; the GA and PSO are implemented from scratch in the scripts.
+
+## Files
+
+| File | What it is |
+|---|---|
+| `SmartApartmentFLC.m` | Builds the Mamdani FLC, plots membership functions and control surfaces, runs a 24-hour scenario simulation, and writes the FIS to file |
+| `SmartApartmentFLC.fis` | The base FLC, saved (6 inputs, 3 outputs, 25 rules) |
+| `SmartApartmentFLC_optimised.fis` | The FLC after GA tuning of the input membership functions |
+| `GA_FLC_Optimizer.m` | Genetic Algorithm that optimises the FLC membership-function breakpoints against a reference dataset |
+| `CEC2005_Benchmark_Comparison.m` | Compares GA vs PSO on CEC'2005 F1 (Shifted Sphere) and F9 (Shifted Rastrigin) at D=2 and D=10 |
+| `matlab.mat` | Saved workspace / results |
+| `AML TASK 2.tex`, `Advance_ML TASK 2.pdf`, `Task_2_Fuzzy_Logic.pdf` | The written report (source and PDFs) |
+
+## Part 1 — Smart Apartment FLC
+
+A Mamdani fuzzy inference system with **6 inputs**, **3 outputs**, and **25 rules**.
+
+**Inputs:**
+
+| Input | Range | Membership functions |
+|---|---|---|
+| `temperature` (°C) | 0–40 | cold, comfortable, hot |
+| `humidity` (%) | 0–100 | dry, comfortable, humid |
+| `external_light` (lux) | 0–1000 | dark, moderate, bright |
+| `time_of_day` (hour) | 0–24 | night, morning, afternoon, evening (4 MFs) |
+| `occupancy` | — | low, medium, high |
+| `user_activity` | — | resting, active, away |
+
+**Outputs:** `hvac_output` (−100…100), `lighting_output` (0…100), `blinds_output` (0…100).
+
+Inference uses `min` (AND), `max` (OR / aggregation), `min` implication, and **centroid** defuzzification.
+
+Run it:
+
+```matlab
+SmartApartmentFLC
+```
+
+This builds the FIS, writes `SmartApartmentFLC.fis`, plots the membership functions and control surfaces, runs a 24-hour operational scenario, and opens the rule viewer for a sample input. To open the system interactively instead: `fuzzyLogicDesigner('SmartApartmentFLC.fis')`.
+
+## Part 2 — GA optimisation of the FLC
+
+`GA_FLC_Optimizer.m` tunes the **input** membership-function breakpoints with a real-coded Genetic Algorithm.
+
+- **Chromosome:** 76 real-valued genes across the six inputs (trapmf = 4 params, trimf = 3 padded to 4).
+- **Fitness:** `1 / (1 + RMSE)`, where RMSE is measured against a synthetic reference dataset of 200 input–output examples (higher fitness = lower RMSE).
+- **GA settings:** population 60, 80 generations, crossover probability 0.80, per-gene mutation 0.05, elitism of the top 2.
+
+Run it:
+
+```matlab
+GA_FLC_Optimizer
+```
+
+It prints per-generation best/mean fitness and best RMSE, reports the base-vs-optimised RMSE improvement, and writes `SmartApartmentFLC_optimised.fis`. The script also discusses how the chromosome length would change for a full-system encoding and for a Sugeno (TSK) model instead of Mamdani.
+
+## Part 3 — GA vs PSO on CEC'2005 benchmarks
+
+`CEC2005_Benchmark_Comparison.m` compares a real-coded GA (SBX crossover) against an inertia-weight PSO on:
+
+- **F1 — Shifted Sphere** (unimodal), global optimum −450
+- **F9 — Shifted Rastrigin** (multimodal), global optimum −330
+
+at dimensions **D = 2** and **D = 10**. Protocol: 15 independent runs per algorithm per function per dimension, with a budget of 10,000 function evaluations per run. The script reports mean / std / best / worst final values and produces convergence curves, box plots, and a summary table.
+
+Run it:
+
+```matlab
+CEC2005_Benchmark_Comparison
+```
+
+## Reproducing Task 2
+
+From the `Task 2 Assignment` folder in MATLAB:
+
+```matlab
+SmartApartmentFLC              % Part 1: build + visualise the FLC
+GA_FLC_Optimizer               % Part 2: GA-tune the membership functions
+CEC2005_Benchmark_Comparison   % Part 3: GA vs PSO benchmark study
+```
+
+The GA and PSO are stochastic; to reproduce exact numbers, set a fixed seed with `rng(42)` at the top of each script before running. The full method and results write-up is in `Task_2_Fuzzy_Logic.pdf` (and `AML TASK 2.tex`).
